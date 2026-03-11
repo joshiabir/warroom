@@ -14,7 +14,8 @@ const url = require('url');
 const PORT = process.env.PORT || 3000;
 
 // ─── RSS Feed Definitions ───────────────────────────────────────────────────
-// All URLs verified as working public RSS feeds (March 2025)
+// Mix of direct feeds + Google News RSS (reliable, never blocks)
+// Google News RSS format: https://news.google.com/rss/search?q=QUERY&hl=en-US&gl=US&ceid=US:en
 const RSS_FEEDS = [
   {
     id: 'aljazeera',
@@ -24,34 +25,6 @@ const RSS_FEEDS = [
     tagClass: 'tag-conflict'
   },
   {
-    id: 'gulfnews',
-    name: 'GULF NEWS',
-    url: 'https://gulfnews.com/rss/world',   // /rss alone 404s — /rss/world works
-    tag: 'REGIONAL',
-    tagClass: 'tag-security'
-  },
-  {
-    id: 'thenational',
-    name: 'THE NATIONAL',
-    url: 'https://www.thenationalnews.com/rss/home.xml',
-    tag: 'UAE',
-    tagClass: 'tag-air'
-  },
-  {
-    id: 'khaleej',
-    name: 'KHALEEJ TIMES',
-    url: 'https://www.khaleejtimes.com/feed',   // /rss 404s — /feed is standard WP
-    tag: 'UAE',
-    tagClass: 'tag-air'
-  },
-  {
-    id: 'arabianbusiness',
-    name: 'ARABIAN BUSINESS',
-    url: 'https://www.arabianbusiness.com/feed',  // standard WordPress feed
-    tag: 'GULF',
-    tagClass: 'tag-security'
-  },
-  {
     id: 'dubaichronicle',
     name: 'DUBAI CHRONICLE',
     url: 'https://www.dubaichronicle.com/feed',
@@ -59,30 +32,58 @@ const RSS_FEEDS = [
     tagClass: 'tag-conflict'
   },
   {
-    id: 'emirates247',
-    name: 'EMIRATES 24|7',
-    url: 'https://www.emirates247.com/cmlink/rss-feed-1.304633',
+    id: 'gnews_uae',
+    name: 'UAE NEWS',
+    url: 'https://news.google.com/rss/search?q=UAE+Dubai&hl=en-US&gl=US&ceid=US:en',
     tag: 'UAE',
     tagClass: 'tag-air'
   },
   {
-    id: 'reuters',
-    name: 'REUTERS WORLD',
-    url: 'https://feeds.reuters.com/reuters/worldNews',
-    tag: 'WORLD',
-    tagClass: 'tag-general'
-  },
-  {
-    id: 'gulftoday',
-    name: 'GULF TODAY',
-    url: 'https://www.gulftoday.ae/rss/rss.xml',
+    id: 'gnews_gulf',
+    name: 'GULF REGION',
+    url: 'https://news.google.com/rss/search?q=Gulf+Dubai+Abu+Dhabi&hl=en-US&gl=US&ceid=US:en',
     tag: 'GULF',
     tagClass: 'tag-security'
   },
   {
-    id: 'bna',
-    name: 'BAHRAIN NEWS AGENCY',
-    url: 'https://www.bna.bh/en/rss/latestnews.xml',
+    id: 'gnews_iran',
+    name: 'IRAN/CONFLICT',
+    url: 'https://news.google.com/rss/search?q=Iran+UAE+missile+attack&hl=en-US&gl=US&ceid=US:en',
+    tag: 'CONFLICT',
+    tagClass: 'tag-conflict'
+  },
+  {
+    id: 'gnews_dxb',
+    name: 'DXB AIRPORT',
+    url: 'https://news.google.com/rss/search?q=Dubai+airport+DXB+flights&hl=en-US&gl=US&ceid=US:en',
+    tag: 'AVIATION',
+    tagClass: 'tag-air'
+  },
+  {
+    id: 'gnews_middleeast',
+    name: 'MIDDLE EAST',
+    url: 'https://news.google.com/rss/search?q=Middle+East+conflict+security&hl=en-US&gl=US&ceid=US:en',
+    tag: 'REGION',
+    tagClass: 'tag-security'
+  },
+  {
+    id: 'gnews_thenational',
+    name: 'THE NATIONAL',
+    url: 'https://news.google.com/rss/search?q=site:thenationalnews.com&hl=en-US&gl=US&ceid=US:en',
+    tag: 'UAE',
+    tagClass: 'tag-air'
+  },
+  {
+    id: 'gnews_khaleejtimes',
+    name: 'KHALEEJ TIMES',
+    url: 'https://news.google.com/rss/search?q=site:khaleejtimes.com&hl=en-US&gl=US&ceid=US:en',
+    tag: 'UAE',
+    tagClass: 'tag-air'
+  },
+  {
+    id: 'gnews_arabianbusiness',
+    name: 'ARABIAN BUSINESS',
+    url: 'https://news.google.com/rss/search?q=site:arabianbusiness.com&hl=en-US&gl=US&ceid=US:en',
     tag: 'GULF',
     tagClass: 'tag-security'
   }
