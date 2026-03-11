@@ -1317,6 +1317,12 @@ function timeAgo(dateStr) {
   } catch { return 'RECENT'; }
 }
 
+function updateLastUpdated() {
+  const t = new Date().toTimeString().slice(0, 8);
+  const el = document.getElementById('last-updated-pill');
+  if (el) el.innerHTML = `<span class="dot"></span>UPDATED ${t}`;
+}
+
 async function fetchAllFeeds() {
   activeSources = 0;
   document.getElementById('news-feed').innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><div class="loading-text">FETCHING INTEL FEEDS...</div></div>`;
