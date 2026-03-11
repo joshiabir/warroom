@@ -89,6 +89,46 @@ const RSS_FEEDS = [
   }
 ];
 
+// ─── OSINT Intel Feeds (live Google News RSS per topic/source) ─────────────
+const OSINT_FEEDS = [
+  { id: 'osint_ncema',      handle: '@UAE_NCEMA',       url: 'https://x.com/UAE_NCEMA',           type: 'official',   query: 'UAE NCEMA emergency alert' },
+  { id: 'osint_dubaipolice',handle: '@DubaiPoliceHQ',   url: 'https://x.com/DubaiPoliceHQ',       type: 'official',   query: 'Dubai Police security incident' },
+  { id: 'osint_dxbairport', handle: '@DXB_Airport',     url: 'https://x.com/DXB_Airport',         type: 'aviation',   query: 'Dubai International Airport DXB operations' },
+  { id: 'osint_uaeinterior',handle: '@UAEInterior',     url: 'https://x.com/UAEInterior',         type: 'official',   query: 'UAE Interior Ministry security' },
+  { id: 'osint_fr24',       handle: 'FLIGHTRADAR24',    url: 'https://www.flightradar24.com/25.07,55.17/9', type: 'aviation', query: 'Dubai airspace flights DXB Emirates' },
+  { id: 'osint_defender',   handle: '@OSINTdefender',   url: 'https://x.com/OSINTdefender',       type: 'intel',      query: 'UAE Gulf Arabia OSINT military' },
+  { id: 'osint_houthi',     handle: 'HOUTHI/YEMEN',     url: 'https://liveuamap.com/middle-east', type: 'threat',     query: 'Houthi attack Yemen missile drone UAE' },
+  { id: 'osint_emirates',   handle: '@EmiratesAirline', url: 'https://x.com/emirates',            type: 'aviation',   query: 'Emirates Airline EK flight disruption' },
+  { id: 'osint_maritime',   handle: 'GULF MARITIME',    url: 'https://www.maritimebulletin.net',  type: 'maritime',   query: 'Gulf of Oman Arabian Sea shipping attack tanker' },
+  { id: 'osint_acled',      handle: 'ACLED MENA',       url: 'https://acleddata.com/middle-east-north-africa/', type: 'intel', query: 'Middle East conflict violence incident Gulf' },
+];
+
+// Cache for OSINT feeds (3 min TTL — fresher than news)
+const osintCache = {};
+const OSINT_TTL = 3 * 60 * 1000;
+
+async function getOSINTFeed(source) {
+  const now = Date.now();
+  if (osintCache[source.id] && (now - osintCache[source.id].ts) < OSINT_TTL) {
+    return osintCache[source.id].data;
+  }
+  const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(source.query)}&hl=en-US&gl=US&ceid=US:en`;
+  try {
+    const xml = await fetchUrl(rssUrl);
+    const items = parseRSS(xml).slice(0, 5).map(item => ({
+      title: item.title,
+      link: item.link,
+      pubDate: item.pubDate,
+      description: item.description
+    }));
+    osintCache[source.id] = { ts: now, data: { ok: true, items } };
+    return osintCache[source.id].data;
+  } catch (err) {
+    console.error(`[osint:${source.id}] ${err.message}`);
+    return { ok: false, items: [], error: err.message };
+  }
+}
+
 // ─── Fetch a URL server-side with gzip support ──────────────────────────────
 function fetchUrl(targetUrl, timeoutMs = 12000, redirectCount = 0) {
   return new Promise((resolve, reject) => {
@@ -259,6 +299,74 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── /api/dxb — live DXB flight data
+  // Uses AeroDataBox free tier via RapidAPI — set RAPIDAPI_KEY env var to enable
+  // Falls back to Google News RSS for DXB when no key is set
+  if (pathname === '/api/dxb') {
+    const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '';
+
+    if (RAPIDAPI_KEY) {
+      // Live data via AeroDataBox (free tier: 1000 calls/month)
+      try {
+        const now = new Date();
+        const pad = n => String(n).padStart(2,'0');
+        const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+        const timeStr = `${pad(now.getHours())}:00`;
+        const depUrl = `https://aerodatabox.p.rapidapi.com/flights/airports/icao/OMDB/${dateStr}T${timeStr}/${dateStr}T${pad((now.getHours()+6)%24)}:00?withLeg=false&direction=Both&withCancelled=true&withCodeshared=false&withCargo=false&withPrivate=false`;
+
+        const xml = await new Promise((resolve, reject) => {
+          const opts = {
+            hostname: 'aerodatabox.p.rapidapi.com',
+            path: depUrl.replace('https://aerodatabox.p.rapidapi.com',''),
+            headers: {
+              'x-rapidapi-host': 'aerodatabox.p.rapidapi.com',
+              'x-rapidapi-key': RAPIDAPI_KEY
+            }
+          };
+          const req = https.get(opts, res2 => {
+            let d = ''; res2.on('data', c => d+=c); res2.on('end', () => resolve(d));
+          });
+          req.on('error', reject);
+          req.setTimeout(8000, () => { req.destroy(); reject(new Error('Timeout')); });
+        });
+
+        const json = JSON.parse(xml);
+        const mapFlight = f => ({
+          flight: f.number || '???',
+          dest: f.movement?.airport?.iata || '???',
+          city: f.movement?.airport?.name?.split(' ')[0] || '???',
+          status: f.status === 'Expected' ? 'ON TIME' : f.status === 'Delayed' ? 'DELAYED' : f.status === 'Cancelled' ? 'CANCELLED' : f.status || 'ON TIME',
+          direction: f.movement?.type === 'Arrival' ? 'ARR' : 'DEP',
+          time: f.movement?.scheduledTime?.local?.slice(11,16) || ''
+        });
+
+        const flights = [
+          ...(json.departures || []).slice(0,6).map(mapFlight),
+          ...(json.arrivals   || []).slice(0,6).map(mapFlight)
+        ];
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, source: 'live', flights, ts: Date.now() }));
+      } catch(e) {
+        console.error('[dxb] AeroDataBox error:', e.message);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, source: 'error', flights: [], error: e.message }));
+      }
+    } else {
+      // No API key — return news headlines about DXB from the RSS cache
+      try {
+        const dxbFeed = RSS_FEEDS.find(f => f.id === 'gnews_dxb');
+        const data = await getCachedFeed(dxbFeed);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, source: 'news', items: data.items || [], ts: Date.now() }));
+      } catch(e) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, source: 'news', items: [], error: e.message }));
+      }
+    }
+    return;
+  }
+
   // ── /api/feed/:id — single feed (useful for debugging)
   const singleMatch = pathname.match(/^\/api\/feed\/(\w+)$/);
   if (singleMatch) {
@@ -287,6 +395,27 @@ const server = http.createServer(async (req, res) => {
       })),
       ts: Date.now()
     }));
+    return;
+  }
+
+  // ── /api/osint — live intel signals
+  if (pathname === '/api/osint') {
+    try {
+      const results = await Promise.allSettled(OSINT_FEEDS.map(s => getOSINTFeed(s)));
+      const signals = OSINT_FEEDS.map((s, i) => ({
+        id: s.id,
+        handle: s.handle,
+        url: s.url,
+        type: s.type,
+        items: results[i].status === 'fulfilled' ? results[i].value.items : [],
+        ok: results[i].status === 'fulfilled' ? results[i].value.ok : false
+      }));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ signals, ts: Date.now() }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
     return;
   }
 

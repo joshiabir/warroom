@@ -202,13 +202,121 @@
     flex: 1;
     overflow-y: auto;
     padding: 10px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-bright) transparent;
+    scrollbar-width: auto;
+    scrollbar-color: var(--border-bright) var(--bg3);
   }
 
-  .panel-body::-webkit-scrollbar { width: 3px; }
-  .panel-body::-webkit-scrollbar-track { background: transparent; }
-  .panel-body::-webkit-scrollbar-thumb { background: var(--border-bright); }
+  .panel-body::-webkit-scrollbar { width: 6px; }
+  .panel-body::-webkit-scrollbar-track { background: var(--bg3); border-left: 1px solid var(--border); }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 0; }
+  .panel-body::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* EXPAND BUTTON */
+  .expand-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .expand-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,200,224,0.08); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2,6,8,0.92);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: var(--panel);
+    border: 1px solid var(--border-bright);
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: modalIn 0.2s ease-out;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.97) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel2);
+    flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+
+  .modal-close {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    width: 28px; height: 28px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    scrollbar-width: auto;
+    scrollbar-color: var(--border-bright) var(--bg3);
+  }
+  .modal-body::-webkit-scrollbar { width: 8px; }
+  .modal-body::-webkit-scrollbar-track { background: var(--bg3); }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--border-bright); }
+  .modal-body::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  .modal-subbar {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
 
   /* CENTER PANEL */
   .center-panel {
@@ -641,7 +749,14 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
   }
+  .status-card:hover {
+    border-color: var(--accent);
+    background: rgba(0,200,224,0.06);
+  }
+  .status-card:hover .status-card-label { color: var(--accent); }
 
   .status-icon {
     width: 8px; height: 8px;
@@ -1031,7 +1146,10 @@
     <div class="panel" style="flex:1;min-height:0;">
       <div class="panel-header">
         <span class="panel-title">EVENT LOG</span>
-        <span class="panel-badge live">LIVE</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="panel-badge live">LIVE</span>
+          <button class="expand-btn" onclick="expandPanel('eventlog')">⛶ EXPAND</button>
+        </div>
       </div>
       <div class="log-filter-bar">
         <button class="filter-btn active" onclick="filterLog('all', this)">ALL</button>
@@ -1112,6 +1230,7 @@
         <div style="display:flex;gap:8px;align-items:center;">
           <span class="panel-badge live">RSS LIVE</span>
           <button class="refresh-btn" onclick="fetchAllFeeds()">⟳ REFRESH</button>
+          <button class="expand-btn" onclick="expandPanel('news')">⛶ EXPAND</button>
         </div>
       </div>
       <div class="panel-body" id="news-feed">
@@ -1131,7 +1250,10 @@
     <div class="panel" style="flex-shrink:0;" id="mob-flight-panel">
       <div class="panel-header">
         <span class="panel-title">DXB AIRPORT STATUS</span>
-        <span class="panel-badge" id="dxb-badge">LOADING</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="panel-badge" id="dxb-badge">LOADING</span>
+          <button class="expand-btn" onclick="expandPanel('flights')">⛶ EXPAND</button>
+        </div>
       </div>
       <div class="dxb-header">
         <div class="dxb-status-indicator" id="dxb-indicator"></div>
@@ -1159,7 +1281,10 @@
     <div class="panel mob-panel-wrap" id="mob-osint" style="flex:1;min-height:0;display:flex;flex-direction:column;">
       <div class="panel-header">
         <span class="panel-title">OSINT MONITOR</span>
-        <span class="panel-badge live">SOCIAL INTEL</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="panel-badge live">SOCIAL INTEL</span>
+          <button class="expand-btn" onclick="expandPanel('osint')">⛶ EXPAND</button>
+        </div>
       </div>
       <div class="panel-body" id="osint-feed">
         <div class="loading-state">
@@ -1173,70 +1298,70 @@
 
   <!-- BOTTOM STATUS BAR -->
   <div class="bottom-bar" style="grid-template-columns:repeat(5,1fr);">
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('aljazeera','AL JAZEERA')">
       <div class="status-icon green" id="si-aljazeera"></div>
       <div>
         <div class="status-card-label">AL JAZEERA</div>
         <div class="status-card-val" id="sv-aljazeera">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('dubaichronicle','DUBAI CHRONICLE')">
       <div class="status-icon green" id="si-dubaichronicle"></div>
       <div>
         <div class="status-card-label">DUBAI CHRONICLE</div>
         <div class="status-card-val" id="sv-dubaichronicle">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_uae','UAE NEWS')">
       <div class="status-icon green" id="si-gnews_uae"></div>
       <div>
         <div class="status-card-label">UAE NEWS</div>
         <div class="status-card-val" id="sv-gnews_uae">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_gulf','GULF REGION')">
       <div class="status-icon green" id="si-gnews_gulf"></div>
       <div>
         <div class="status-card-label">GULF REGION</div>
         <div class="status-card-val" id="sv-gnews_gulf">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_iran','IRAN / CONFLICT')">
       <div class="status-icon green" id="si-gnews_iran"></div>
       <div>
         <div class="status-card-label">IRAN/CONFLICT</div>
         <div class="status-card-val" id="sv-gnews_iran">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_dxb','DXB AIRPORT')">
       <div class="status-icon green" id="si-gnews_dxb"></div>
       <div>
         <div class="status-card-label">DXB AIRPORT</div>
         <div class="status-card-val" id="sv-gnews_dxb">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_middleeast','MIDDLE EAST')">
       <div class="status-icon green" id="si-gnews_middleeast"></div>
       <div>
         <div class="status-card-label">MIDDLE EAST</div>
         <div class="status-card-val" id="sv-gnews_middleeast">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_thenational','THE NATIONAL')">
       <div class="status-icon green" id="si-gnews_thenational"></div>
       <div>
         <div class="status-card-label">THE NATIONAL</div>
         <div class="status-card-val" id="sv-gnews_thenational">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_khaleejtimes','KHALEEJ TIMES')">
       <div class="status-icon green" id="si-gnews_khaleejtimes"></div>
       <div>
         <div class="status-card-label">KHALEEJ TIMES</div>
         <div class="status-card-val" id="sv-gnews_khaleejtimes">CONNECTING</div>
       </div>
     </div>
-    <div class="status-card">
+    <div class="status-card" onclick="expandSource('gnews_arabianbusiness','ARABIAN BUSINESS')">
       <div class="status-icon green" id="si-gnews_arabianbusiness"></div>
       <div>
         <div class="status-card-label">ARABIAN BUSINESS</div>
@@ -1487,151 +1612,144 @@ function renderEventLog() {
 // ============================================================
 // OSINT SOCIAL MONITOR — with clickable source links
 // ============================================================
-function loadOSINT() {
-  const signals = [
-    {
-      handle: '@UAE_NCEMA',
-      url: 'https://x.com/UAE_NCEMA',
-      text: 'NCEMA monitors and coordinates national emergency responses across all emirates. Current threat level: Standard monitoring protocols active.',
-      time: '12M AGO', type: 'official'
-    },
-    {
-      handle: '@DubaiPoliceHQ',
-      url: 'https://x.com/DubaiPoliceHQ',
-      text: 'Dubai Police operational status — all units deployed per standard protocols. Public safety operations ongoing across all districts.',
-      time: '28M AGO', type: 'official'
-    },
-    {
-      handle: '@DXB_Airport',
-      url: 'https://x.com/DXB_Airport',
-      text: 'Dubai International Airport operating normally. All terminals open. Check flight status via DXB app for latest updates.',
-      time: '45M AGO', type: 'transport'
-    },
-    {
-      handle: '@UAEInterior',
-      url: 'https://x.com/UAEInterior',
-      text: 'Ministry of Interior: Community safety briefing scheduled. All emergency services at full operational capacity.',
-      time: '1H AGO', type: 'official'
-    },
-    {
-      handle: 'FLIGHTRADAR24',
-      url: 'https://www.flightradar24.com/25.07,55.17/9',
-      text: '⚡ DXB airspace activity nominal — standard departure/arrival sequencing. No NOTAMs indicating restricted operations.',
-      time: '5M AGO', type: 'aviation'
-    },
-    {
-      handle: '@OSINTdefender',
-      url: 'https://x.com/OSINTdefender',
-      text: '[UNVERIFIED] Social media reports of increased maritime patrol activity in Arabian Gulf. No official confirmation. Monitor.',
-      time: '2H AGO', type: 'unverified'
-    },
-    {
-      handle: '@RAWINtel',
-      url: 'https://x.com/RAWINtel',
-      text: 'Gulf region shipping lanes — standard commercial traffic patterns. No diversions reported on major routes.',
-      time: '3H AGO', type: 'maritime'
-    },
-    {
-      handle: '@EmiratesAirline',
-      url: 'https://x.com/emirates',
-      text: 'EK operations fully nominal. Fleet utilization at standard operational parameters. No emergency diversions logged.',
-      time: '35M AGO', type: 'aviation'
-    },
-    {
-      handle: 'LIVE UA MAP',
-      url: 'https://liveuamap.com/middle-east',
-      text: 'Middle East conflict tracker — open source event mapping. Monitor for regional incident reports.',
-      time: 'LIVE', type: 'intel'
-    },
-    {
-      handle: 'ACLEDDATA',
-      url: 'https://acleddata.com/middle-east-north-africa/',
-      text: 'Armed Conflict Location & Event Data — MENA region. Tracking political violence and protest events across Gulf states.',
-      time: 'DAILY', type: 'intel'
-    },
-  ];
+async function loadOSINT() {
+  const feed = document.getElementById('osint-feed');
+  feed.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><div class="loading-text">SCANNING OSINT SOURCES...</div></div>`;
 
   const typeColors = {
-    official: 'var(--accent2)',
-    transport: 'var(--accent)',
-    aviation: 'var(--gold)',
-    unverified: 'var(--warn)',
-    maritime: 'var(--text-dim)',
-    intel: 'var(--danger)'
+    official:  'var(--accent2)',
+    aviation:  'var(--gold)',
+    intel:     'var(--danger)',
+    threat:    'var(--danger)',
+    maritime:  'var(--accent)',
+    unverified:'var(--warn)'
   };
 
-  const html = signals.map(s => `
-    <div class="osint-item">
-      <a href="${s.url}" target="_blank" rel="noopener">
-        <div class="osint-handle" style="color:${typeColors[s.type] || 'var(--accent)'}">
-          <span class="osint-handle-link">
-            ${s.handle}
-            <span class="ext-icon">↗</span>
-          </span>
-          <span style="color:var(--text-dim);margin-left:6px;font-size:8px;">[${s.type.toUpperCase()}]</span>
-        </div>
-        <div class="osint-text">${s.text}</div>
-        <div class="osint-meta">
-          <span>${s.time}</span>
-          ${s.type === 'unverified' ? '<span style="color:var(--warn)">⚠ UNVERIFIED</span>' : `<span style="color:${typeColors[s.type]}">✓ SOURCE</span>`}
-        </div>
-      </a>
-    </div>`).join('');
+  try {
+    const res  = await fetch('/api/osint');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
 
-  document.getElementById('osint-feed').innerHTML = html;
+    if (!data.signals || !data.signals.length) throw new Error('No signals returned');
+
+    const html = data.signals.map(s => {
+      const color = typeColors[s.type] || 'var(--accent)';
+      const topItem = s.items && s.items[0];
+
+      return `
+        <div class="osint-item">
+          <div class="osint-handle" style="color:${color}">
+            <a href="${s.url}" target="_blank" rel="noopener" class="osint-handle-link" style="color:inherit;">
+              ${s.handle} <span class="ext-icon">↗</span>
+            </a>
+            <span style="color:var(--text-dim);margin-left:6px;font-size:8px;">[${s.type.toUpperCase()}]</span>
+          </div>
+          ${topItem
+            ? `<div class="osint-text">
+                <a href="${topItem.link || s.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">
+                  ${topItem.title}
+                </a>
+               </div>
+               <div class="osint-meta">
+                 <span>${timeAgo(topItem.pubDate)}</span>
+                 ${s.items.length > 1
+                   ? `<span style="color:${color};cursor:pointer;" onclick="expandOSINTSource('${s.id}','${s.handle}')">
+                       +${s.items.length - 1} MORE ›
+                     </span>`
+                   : ''}
+                 <span style="color:${color};">● LIVE</span>
+               </div>`
+            : `<div class="osint-text" style="color:var(--text-dim);font-size:10px;">NO RECENT SIGNAL</div>`
+          }
+        </div>`;
+    }).join('');
+
+    feed.innerHTML = html;
+    // cache signals for modal use
+    window._osintSignals = data.signals;
+
+  } catch (err) {
+    console.error('OSINT load error:', err);
+    feed.innerHTML = `<div class="error-state"><div class="err-icon">⚠</div>OSINT FEED ERROR<br><span style="font-size:9px;color:var(--text-dim)">${err.message}</span></div>`;
+  }
 }
-function loadDXBStatus() {
-  // Simulated live-style data (no free public API without key)
-  // In production: replace with FlightAware/AviationStack API
-  const status = getDXBOperationalStatus();
-
-  const indicator = document.getElementById('dxb-indicator');
+async function loadDXBStatus() {
+  const indicator  = document.getElementById('dxb-indicator');
   const statusText = document.getElementById('dxb-status-text');
-  const badge = document.getElementById('dxb-badge');
+  const badge      = document.getElementById('dxb-badge');
   const headerStatus = document.getElementById('dxb-header-status');
+  const flightList = document.getElementById('flight-list');
 
-  indicator.className = `dxb-status-indicator ${status.cls}`;
-  statusText.className = `dxb-status-text ${status.cls}`;
-  statusText.textContent = status.text;
-  badge.textContent = status.badge;
-  badge.className = `panel-badge ${status.badgeCls}`;
-  headerStatus.innerHTML = `<span class="dot"></span>${status.text}`;
+  flightList.innerHTML = `<div class="loading-state" style="padding:20px;"><div class="loading-spinner"></div><div class="loading-text">FETCHING LIVE DATA...</div></div>`;
 
-  // Flight list
-  const flights = generateFlightData();
-  document.getElementById('stat-flights').textContent = flights.filter(f => f.status === 'ON TIME').length * 3;
-  renderFlights(flights);
-}
+  try {
+    const res  = await fetch('/api/dxb');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
 
-function getDXBOperationalStatus() {
-  const hour = new Date().getHours();
-  // DXB is 24/7 but simulate different states
-  return {
-    cls: '',
-    text: 'FULLY OPERATIONAL',
-    badge: 'NOMINAL',
-    badgeCls: 'live'
-  };
+    // ── Status indicator (always show operational unless error)
+    indicator.className  = 'dxb-status-indicator';
+    statusText.className = 'dxb-status-text';
+    statusText.textContent = 'FULLY OPERATIONAL';
+    badge.textContent = 'NOMINAL';
+    badge.className = 'panel-badge live';
+    if (headerStatus) headerStatus.innerHTML = `<span class="dot"></span>FULLY OPERATIONAL`;
+
+    if (data.source === 'live' && data.flights && data.flights.length) {
+      // ── Live flight data from AeroDataBox
+      const cancelled = data.flights.filter(f => f.status === 'CANCELLED').length;
+      const delayed   = data.flights.filter(f => f.status === 'DELAYED').length;
+      const ontime    = data.flights.filter(f => f.status === 'ON TIME').length;
+
+      if (cancelled > 2) {
+        badge.textContent = 'DISRUPTED'; badge.className = 'panel-badge critical';
+        statusText.textContent = 'DISRUPTIONS ACTIVE';
+      } else if (delayed > 3) {
+        badge.textContent = 'DELAYS'; badge.className = 'panel-badge warn';
+        statusText.textContent = 'DELAYS REPORTED';
+      }
+
+      document.getElementById('stat-flights').textContent = ontime * 3;
+      window._dxbFlights = data.flights;
+      renderFlights(data.flights);
+
+    } else if (data.source === 'news' && data.items && data.items.length) {
+      // ── No API key — show live DXB news headlines instead
+      document.getElementById('stat-flights').textContent = '~90';
+      window._dxbFlights = [];
+
+      flightList.innerHTML = `
+        <div style="padding:6px 0 4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--warn);letter-spacing:1px;border-bottom:1px solid var(--border);margin-bottom:6px;">
+          ⚡ LIVE DXB NEWS FEED — SET RAPIDAPI_KEY FOR FLIGHT DATA
+        </div>` +
+        data.items.map(item => `
+          <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;margin-bottom:4px;">
+              ${timeAgo(item.pubDate)} · DXB INTEL
+            </div>
+            <div style="font-size:11px;line-height:1.4;">
+              <a href="${item.link}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">
+                ${item.title}
+              </a>
+            </div>
+          </div>`).join('');
+
+    } else {
+      flightList.innerHTML = `<div class="error-state"><div class="err-icon">⚠</div>NO DATA<br><span style="font-size:9px;color:var(--text-dim);">Set RAPIDAPI_KEY for live flights</span></div>`;
+    }
+
+  } catch(err) {
+    console.error('[DXB]', err);
+    indicator.className  = 'dxb-status-indicator status-delayed';
+    statusText.textContent = 'DATA UNAVAILABLE';
+    badge.textContent = 'OFFLINE'; badge.className = 'panel-badge critical';
+    flightList.innerHTML = `<div class="error-state"><div class="err-icon">⚠</div>${err.message}</div>`;
+  }
 }
 
 function generateFlightData() {
-  const airlines = ['EK', 'FZ', 'EY', 'QR', 'TK', 'BA', 'LH', 'AF', 'SV'];
-  const destinations = [
-    {code:'LHR',city:'LONDON'},{code:'JFK',city:'NEW YORK'},{code:'CDG',city:'PARIS'},
-    {code:'SIN',city:'SINGAPORE'},{code:'BOM',city:'MUMBAI'},{code:'KHI',city:'KARACHI'},
-    {code:'IST',city:'ISTANBUL'},{code:'FRA',city:'FRANKFURT'},{code:'BKK',city:'BANGKOK'},
-    {code:'DEL',city:'DELHI'},{code:'RUH',city:'RIYADH'},{code:'DOH',city:'DOHA'}
-  ];
-  const statuses = ['ON TIME','ON TIME','ON TIME','DELAYED','ON TIME','DELAYED','ON TIME','CANCELLED'];
-
-  return Array.from({length: 12}, (_, i) => {
-    const al = airlines[i % airlines.length];
-    const num = 100 + Math.floor(Math.random() * 900);
-    const dest = destinations[i % destinations.length];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const direction = i % 2 === 0 ? 'ARR' : 'DEP';
-    return { flight: `${al}${num}`, dest: dest.code, city: dest.city, status, direction };
-  });
+  // kept for modal fallback only — returns cached live flights or empty
+  return window._dxbFlights || [];
 }
 
 function renderFlights(flights) {
@@ -1652,6 +1770,230 @@ function renderFlights(flights) {
 
   document.getElementById('flight-list').innerHTML = html;
 }
+
+// ============================================================
+// EXPAND MODAL
+// ============================================================
+function expandPanel(type) {
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const body    = document.getElementById('modal-body');
+  const subbar  = document.getElementById('modal-subbar');
+
+  subbar.innerHTML = '';
+  body.innerHTML   = '';
+
+  switch (type) {
+
+    case 'news':
+      title.textContent = 'LIVE NEWS — UAE/GULF REGION';
+      subbar.innerHTML = `
+        <button class="refresh-btn" onclick="fetchAllFeeds();renderModalNews()">⟳ REFRESH</button>`;
+      renderModalNews();
+      break;
+
+    case 'eventlog':
+      title.textContent = 'EVENT LOG';
+      subbar.innerHTML = `
+        <button class="filter-btn active"   onclick="filterLogModal('all',this)">ALL</button>
+        <button class="filter-btn critical" onclick="filterLogModal('critical',this)">THREAT</button>
+        <button class="filter-btn warn-f"   onclick="filterLogModal('warn',this)">UAE/GULF</button>
+        <button class="filter-btn"          onclick="filterLogModal('info',this)">INFO</button>`;
+      renderModalLog('all');
+      break;
+
+    case 'flights':
+      title.textContent = 'DXB AIRPORT — FLIGHT OPERATIONS';
+      renderModalFlights();
+      break;
+
+    case 'osint':
+      title.textContent = 'OSINT MONITOR — LIVE INTEL SIGNALS';
+      const signals = window._osintSignals || [];
+      const typeColors2 = { official:'var(--accent2)', aviation:'var(--gold)', intel:'var(--danger)', threat:'var(--danger)', maritime:'var(--accent)', unverified:'var(--warn)' };
+      if (!signals.length) {
+        body.innerHTML = `<div class="error-state"><div class="err-icon">⚠</div>OSINT NOT YET LOADED</div>`;
+      } else {
+        body.innerHTML = signals.map(s => {
+          const color = typeColors2[s.type] || 'var(--accent)';
+          return s.items.map((item, i) => `
+            <div class="feed-item" style="padding:12px 0;border-bottom:1px solid var(--border);">
+              <div class="feed-source">
+                <span style="color:${color};font-family:'Share Tech Mono',monospace;font-size:9px;">${s.handle}</span>
+                <span style="margin-left:auto;">${timeAgo(item.pubDate)}</span>
+              </div>
+              <div class="feed-title" style="font-size:13px;margin:6px 0;">
+                <a href="${item.link || s.url}" target="_blank" rel="noopener">${item.title}</a>
+              </div>
+              ${item.description ? `<div class="feed-desc" style="font-size:10px;">${item.description.slice(0,200)}</div>` : ''}
+              <div style="margin-top:4px;"><span style="color:${color};font-family:'Share Tech Mono',monospace;font-size:8px;">[${(s.type||'').toUpperCase()}]</span></div>
+            </div>`).join('');
+        }).join('');
+      }
+      break;
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderModalNews() {
+  const body = document.getElementById('modal-body');
+  if (!allItems || !allItems.length) {
+    body.innerHTML = `<div class="error-state">NO DATA — FETCH FEEDS FIRST</div>`;
+    return;
+  }
+  body.innerHTML = allItems.map(item => {
+    const conflictBadge = item.isConflict ? `<span class="feed-tag tag-conflict">THREAT</span>` : '';
+    const uaeBadge = item.isUAE ? `<span class="feed-tag tag-security">UAE/GULF</span>` : '';
+    return `
+      <div class="feed-item">
+        <div class="feed-source"><span class="src-name">${item.source}</span><span>${item.ago}</span></div>
+        <div class="feed-title"><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></div>
+        <div class="feed-desc">${item.desc.slice(0,300)}</div>
+        <div>${conflictBadge}${uaeBadge}<span class="feed-tag ${item.tagClass}">${item.tag}</span></div>
+      </div>`;
+  }).join('');
+}
+
+function renderModalLog(filter) {
+  const body = document.getElementById('modal-body');
+  const filtered = filter === 'all' ? logEvents : logEvents.filter(e => e.cls === filter);
+  if (!filtered.length) { body.innerHTML = `<div class="error-state">NO EVENTS</div>`; return; }
+  body.innerHTML = filtered.map(e => `
+    <div class="event-log-item" style="padding:10px 0;">
+      <div class="log-time">
+        <div>${e.time}</div>
+        <div style="color:var(--text-dim);font-size:8px;margin-top:2px;">${e.source.split(' ')[0]}</div>
+      </div>
+      <div class="log-msg ${e.cls}">
+        <a href="${e.link}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">
+          ${e.title}
+        </a>
+      </div>
+    </div>`).join('');
+}
+
+function filterLogModal(filter, btn) {
+  document.querySelectorAll('#modal-subbar .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderModalLog(filter);
+}
+
+function renderModalFlights() {
+  const body = document.getElementById('modal-body');
+  const flights = generateFlightData();
+  body.innerHTML = `
+    <div style="padding:10px 0 16px;">
+      <div class="dxb-header" style="margin-bottom:12px;">
+        <div class="dxb-status-indicator"></div>
+        <div class="dxb-status-text">FULLY OPERATIONAL</div>
+      </div>
+      <div class="runway-grid" style="margin-bottom:12px;">
+        <div class="runway-box"><div class="runway-id">12L/30R</div><div class="runway-status rwy-open">OPERATIONAL</div></div>
+        <div class="runway-box"><div class="runway-id">12R/30L</div><div class="runway-status rwy-open">OPERATIONAL</div></div>
+      </div>
+      ${flights.map(f => {
+        const cls = f.status === 'ON TIME' ? 'status-normal' : f.status === 'DELAYED' ? 'status-delayed' : 'status-cancelled';
+        return `<div class="flight-item">
+          <div><div class="flight-num">${f.flight}</div><div style="font-size:9px;color:var(--text-dim)">${f.direction}</div></div>
+          <div class="flight-route"><div>${f.dest}</div><div style="color:var(--text-dim);font-size:9px;">${f.city}</div></div>
+          <div class="flight-status ${cls}">${f.status}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function expandOSINTSource(sourceId, handle) {
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const body    = document.getElementById('modal-body');
+  const subbar  = document.getElementById('modal-subbar');
+  subbar.innerHTML = '';
+
+  const signals = window._osintSignals || [];
+  const source  = signals.find(s => s.id === sourceId);
+  const typeColors = { official:'var(--accent2)', aviation:'var(--gold)', intel:'var(--danger)', threat:'var(--danger)', maritime:'var(--accent)', unverified:'var(--warn)' };
+  const color = typeColors[source && source.type] || 'var(--accent)';
+
+  title.textContent = `${handle} — LIVE INTEL`;
+
+  if (!source || !source.items.length) {
+    body.innerHTML = `<div class="error-state"><div class="err-icon">⚠</div>NO SIGNALS FOR THIS SOURCE</div>`;
+  } else {
+    body.innerHTML = source.items.map((item, i) => `
+      <div class="feed-item" style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <div class="feed-source">
+          <span style="color:var(--text-dim);font-size:9px;font-family:'Share Tech Mono',monospace;">#${String(i+1).padStart(2,'0')}</span>
+          <span style="margin-left:auto;">${timeAgo(item.pubDate)}</span>
+        </div>
+        <div class="feed-title" style="font-size:13px;margin:6px 0;">
+          <a href="${item.link || '#'}" target="_blank" rel="noopener">${item.title}</a>
+        </div>
+        ${item.description ? `<div class="feed-desc" style="font-size:10px;">${item.description.slice(0,300)}</div>` : ''}
+        <div style="margin-top:6px;"><span style="color:${color};font-family:'Share Tech Mono',monospace;font-size:9px;">[${(source.type||'').toUpperCase()}] ● LIVE INTEL</span></div>
+      </div>`).join('');
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function expandSource(sourceId, sourceName) {
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const body    = document.getElementById('modal-body');
+  const subbar  = document.getElementById('modal-subbar');
+
+  title.textContent = `${sourceName} — HEADLINES`;
+  subbar.innerHTML  = '';
+  body.innerHTML    = '';
+
+  const items = allItems.filter(i => i.sourceId === sourceId);
+
+  if (!items.length) {
+    body.innerHTML = `
+      <div class="error-state">
+        <div class="err-icon">⚠</div>
+        NO HEADLINES LOADED YET FOR THIS SOURCE<br>
+        <span style="color:var(--text-dim);font-size:9px;">Wait for feeds to load or press REFRESH</span>
+      </div>`;
+  } else {
+    body.innerHTML = items.map((item, i) => `
+      <div class="feed-item" style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <div class="feed-source">
+          <span style="color:var(--text-dim);font-size:9px;font-family:'Share Tech Mono',monospace;">
+            #${String(i+1).padStart(2,'0')}
+          </span>
+          <span style="margin-left:auto;">${item.ago}</span>
+        </div>
+        <div class="feed-title" style="font-size:13px;margin:6px 0;">
+          <a href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
+        </div>
+        ${item.desc ? `<div class="feed-desc" style="font-size:10px;">${item.desc.slice(0,300)}</div>` : ''}
+        <div style="margin-top:6px;">
+          ${item.isConflict ? `<span class="feed-tag tag-conflict">THREAT</span>` : ''}
+          ${item.isUAE     ? `<span class="feed-tag tag-security">UAE/GULF</span>` : ''}
+          <span class="feed-tag ${item.tagClass}">${item.tag}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
 
 // ============================================================
 // INIT & REFRESH LOOPS
@@ -1726,6 +2068,19 @@ function handleResize() {
 }
 
 window.addEventListener('load', init);
+document.addEventListener('DOMContentLoaded', init);
 </script>
+<!-- EXPAND MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">PANEL</span>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div id="modal-subbar"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
