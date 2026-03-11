@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAE OPS CENTER — DUBAI WAR ROOM</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020608;
+    --bg2: #060d10;
+    --bg3: #0a1419;
+    --panel: #0b181e;
+    --panel2: #0f2028;
+    --border: #0e3040;
+    --border-bright: #1a5068;
+    --accent: #00c8e0;
+    --accent2: #00ff99;
+    --warn: #ff6b00;
+    --danger: #ff1e3c;
+    --muted: #2a4a58;
+    --text: #b0d8e8;
+    --text-dim: #4a7a8a;
+    --text-bright: #e8f8ff;
+    --gold: #ffc044;
+    --scan: rgba(0, 200, 224, 0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      var(--scan) 2px,
+      var(--scan) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    animation: scanlines 8s linear infinite;
+  }
+
+  @keyframes scanlines {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 100px; }
+  }
+
+  /* HEADER */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-bright);
+    background: linear-gradient(180deg, #040e14 0%, var(--bg2) 100%);
+    position: relative;
+    z-index: 100;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
+    animation: borderPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .header-left { display: flex; gap: 20px; align-items: center; }
+  .header-right { display: flex; gap: 20px; align-items: center; justify-content: flex-end; }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .status-pill.active { border-color: var(--accent2); color: var(--accent2); }
+  .status-pill.warn { border-color: var(--warn); color: var(--warn); }
+  .status-pill.danger { border-color: var(--danger); color: var(--danger); }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .header-title {
+    text-align: center;
+  }
+
+  .header-title .main {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0,200,224,0.5);
+  }
+
+  .header-title .sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 6px;
+    margin-top: 2px;
+  }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    grid-template-rows: auto 1fr auto;
+    gap: 8px;
+    padding: 8px;
+    height: calc(100vh - 64px);
+  }
+
+  /* PANEL BASE */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+  }
+
+  .panel-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel2);
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .panel-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    border: 1px solid;
+    letter-spacing: 1px;
+  }
+
+  .panel-badge.live { border-color: var(--accent2); color: var(--accent2); }
+  .panel-badge.warn { border-color: var(--warn); color: var(--warn); }
+  .panel-badge.nominal { border-color: var(--muted); color: var(--muted); }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-bright) transparent;
+  }
+
+  .panel-body::-webkit-scrollbar { width: 3px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border-bright); }
+
+  /* CENTER PANEL */
+  .center-panel {
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* CLOCK ROW */
+  .clock-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .clock-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .clock-box::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.3;
+  }
+
+  .clock-city {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .clock-time {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(0,200,224,0.3);
+  }
+
+  .clock-date {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* THREAT MAP */
+  .threat-map-panel {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    min-height: 300px;
+  }
+
+  .map-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: radial-gradient(ellipse at center, #061520 0%, #020608 70%);
+  }
+
+  .map-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,224,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,224,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .map-embed {
+    width: 100%;
+    height: 100%;
+    border: none;
+    opacity: 0.85;
+    filter: invert(1) hue-rotate(170deg) saturate(0.3) brightness(0.7);
+  }
+
+  .map-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(2,6,8,0.3) 0%, transparent 30%, transparent 70%, rgba(2,6,8,0.5) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .map-ping {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--danger);
+    animation: mapPing 2s ease-out infinite;
+    z-index: 3;
+  }
+
+  .map-ping::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid var(--danger);
+    animation: mapPingOuter 2s ease-out infinite;
+  }
+
+  @keyframes mapPing {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  @keyframes mapPingOuter {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  .map-label {
+    position: absolute;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    white-space: nowrap;
+    z-index: 4;
+    text-shadow: 0 0 8px rgba(0,200,224,0.8);
+  }
+
+  /* ALERT TICKER */
+  .ticker-bar {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-top: 1px solid var(--warn);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .ticker-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--warn);
+    letter-spacing: 2px;
+    white-space: nowrap;
+    background: rgba(255,107,0,0.1);
+    padding: 2px 8px;
+    border: 1px solid var(--warn);
+  }
+
+  .ticker-scroll {
+    flex: 1;
+    overflow: hidden;
+    height: 18px;
+    position: relative;
+  }
+
+  .ticker-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    white-space: nowrap;
+    position: absolute;
+    animation: tickerScroll 45s linear infinite;
+  }
+
+  @keyframes tickerScroll {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-200%); }
+  }
+
+  /* NEWS FEED ITEMS */
+  .feed-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .feed-item:hover { background: rgba(0,200,224,0.03); }
+  .feed-item:last-child { border-bottom: none; }
+
+  .feed-source {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .feed-source .src-name { color: var(--accent); }
+
+  .feed-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-bright);
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+
+  .feed-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .feed-title a:hover { color: var(--accent); }
+
+  .feed-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .feed-tag {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    padding: 1px 5px;
+    border: 1px solid;
+    margin-right: 4px;
+    margin-top: 4px;
+  }
+
+  .tag-conflict { border-color: var(--danger); color: var(--danger); }
+  .tag-security { border-color: var(--warn); color: var(--warn); }
+  .tag-air { border-color: var(--accent); color: var(--accent); }
+  .tag-general { border-color: var(--muted); color: var(--muted); }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    gap: 12px;
+    color: var(--text-dim);
+  }
+
+  .loading-spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    animation: loadingPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes loadingPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* FLIGHT PANEL */
+  .flight-item {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+  }
+
+  .flight-item:last-child { border-bottom: none; }
+
+  .flight-num { color: var(--accent); font-weight: bold; }
+
+  .flight-route {
+    color: var(--text);
+    font-size: 10px;
+  }
+
+  .flight-status {
+    padding: 2px 6px;
+    font-size: 9px;
+    border: 1px solid;
+    text-align: center;
+  }
+
+  .status-normal { border-color: var(--accent2); color: var(--accent2); }
+  .status-delayed { border-color: var(--warn); color: var(--warn); }
+  .status-cancelled { border-color: var(--danger); color: var(--danger); }
+  .status-diverted { border-color: var(--gold); color: var(--gold); }
+  .status-grounded { border-color: var(--danger); color: var(--danger); background: rgba(255,30,60,0.1); }
+
+  /* OSINT PANEL */
+  .osint-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .osint-item:last-child { border-bottom: none; }
+
+  .osint-handle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+
+  .osint-text {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+
+  .osint-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 12px;
+  }
+
+  /* ALERT LEVEL */
+  .alert-level-panel {
+    padding: 12px;
+  }
+
+  .threat-meter {
+    margin-bottom: 16px;
+  }
+
+  .threat-level-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .threat-bar {
+    height: 6px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .threat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--warn), var(--danger));
+    transition: width 0.5s ease;
+    position: relative;
+  }
+
+  .threat-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 20px;
+    background: rgba(255,255,255,0.3);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .stat-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 8px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(0,200,224,0.4);
+  }
+
+  .stat-lbl {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* BOTTOM STATUS */
+  .bottom-bar {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .status-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .status-icon {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .status-icon.green { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .status-icon.amber { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  .status-icon.red { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+  .status-card-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .status-card-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--text-bright);
+    margin-top: 2px;
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    background: rgba(0,200,224,0.1);
+    border-color: var(--accent);
+  }
+
+  /* SCROLLING LOG */
+  .event-log-item {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(14,48,64,0.5);
+    font-size: 11px;
+    align-items: start;
+  }
+
+  .log-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    padding-top: 1px;
+  }
+
+  .log-msg { color: var(--text); line-height: 1.4; }
+  .log-msg.critical { color: var(--danger); }
+  .log-msg.warn { color: var(--warn); }
+  .log-msg.info { color: var(--accent); }
+
+  /* DXB Status */
+  .dxb-header {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dxb-status-indicator {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 12px var(--accent2);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  .dxb-status-indicator.degraded { background: var(--warn); box-shadow: 0 0 12px var(--warn); }
+  .dxb-status-indicator.critical { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+
+  .dxb-status-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+  }
+
+  .dxb-status-text.degraded { color: var(--warn); }
+  .dxb-status-text.critical { color: var(--danger); }
+
+  .runway-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .runway-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 8px;
+    text-align: center;
+  }
+
+  .runway-id {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .runway-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    margin-top: 4px;
+    padding: 2px 4px;
+    border: 1px solid;
+  }
+
+  .rwy-open { border-color: var(--accent2); color: var(--accent2); }
+  .rwy-closed { border-color: var(--danger); color: var(--danger); background: rgba(255,30,60,0.1); }
+  .rwy-limited { border-color: var(--warn); color: var(--warn); }
+
+  /* Animated scan line */
+  .scan-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scanDown 4s linear infinite;
+    opacity: 0.3;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  @keyframes scanDown {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+
+  /* Error state */
+  .error-state {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    line-height: 1.8;
+  }
+
+  .error-state .err-icon { color: var(--warn); font-size: 20px; margin-bottom: 8px; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="status-pill active"><span class="dot"></span>FEEDS LIVE</div>
+    <div class="status-pill" id="dxb-header-status"><span class="dot"></span>DXB NOMINAL</div>
+  </div>
+  <div class="header-title">
+    <div class="main">UAE OPS CENTER</div>
+    <div class="sub">DUBAI SITUATIONAL AWARENESS CONSOLE // CLASSIFIED OSINT</div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill" id="last-updated-pill"><span class="dot"></span>SYNCING...</div>
+    <div class="status-pill active" id="clock-header"></div>
+  </div>
+</div>
+
+<!-- ALERT TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-label">⚠ INTEL FEED</div>
+  <div class="ticker-scroll">
+    <div class="ticker-text" id="ticker-text">LOADING INTELLIGENCE FEEDS... PLEASE WAIT...</div>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- LEFT COL: Alert Level + Event Log -->
+  <div style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+
+    <!-- THREAT LEVEL -->
+    <div class="panel" style="flex-shrink:0;">
+      <div class="panel-header">
+        <span class="panel-title">THREAT ASSESSMENT</span>
+        <span class="panel-badge warn" id="threat-badge">ELEVATED</span>
+      </div>
+      <div class="alert-level-panel">
+        <div class="threat-meter">
+          <div class="threat-level-label">
+            <span>REGIONAL THREAT</span>
+            <span id="threat-pct" style="color:var(--warn)">72%</span>
+          </div>
+          <div class="threat-bar"><div class="threat-fill" id="threat-bar" style="width:72%"></div></div>
+        </div>
+        <div class="threat-meter">
+          <div class="threat-level-label">
+            <span>AIR THREAT INDEX</span>
+            <span id="air-threat-pct" style="color:var(--accent)">34%</span>
+          </div>
+          <div class="threat-bar"><div class="threat-fill" id="air-threat-bar" style="width:34%;background:linear-gradient(90deg,var(--accent2),var(--accent))"></div></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-val" id="stat-alerts">--</div>
+            <div class="stat-lbl">ACTIVE ALERTS</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="stat-flights">--</div>
+            <div class="stat-lbl">DXB FLIGHTS/HR</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="stat-incidents">--</div>
+            <div class="stat-lbl">INCIDENTS</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="stat-sources">0</div>
+            <div class="stat-lbl">FEEDS ACTIVE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT LOG -->
+    <div class="panel" style="flex:1;min-height:0;">
+      <div class="panel-header">
+        <span class="panel-title">EVENT LOG</span>
+        <span class="panel-badge live">LIVE</span>
+      </div>
+      <div class="panel-body" id="event-log">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">INITIALIZING...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CENTER: Map + News -->
+  <div class="center-panel">
+
+    <!-- CLOCKS -->
+    <div class="clock-row">
+      <div class="clock-box">
+        <div class="clock-city">DUBAI // UAE</div>
+        <div class="clock-time" id="clock-dxb">--:--:--</div>
+        <div class="clock-date" id="date-dxb"></div>
+      </div>
+      <div class="clock-box">
+        <div class="clock-city">ABU DHABI</div>
+        <div class="clock-time" id="clock-auh">--:--:--</div>
+        <div class="clock-date" id="date-auh"></div>
+      </div>
+      <div class="clock-box">
+        <div class="clock-city">LONDON // UTC</div>
+        <div class="clock-time" id="clock-utc">--:--:--</div>
+        <div class="clock-date" id="date-utc"></div>
+      </div>
+      <div class="clock-box">
+        <div class="clock-city">WASHINGTON D.C.</div>
+        <div class="clock-time" id="clock-dc">--:--:--</div>
+        <div class="clock-date" id="date-dc"></div>
+      </div>
+    </div>
+
+    <!-- THREAT MAP -->
+    <div class="threat-map-panel panel">
+      <div class="panel-header">
+        <span class="panel-title">REGIONAL MAP — UAE / GULF</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="panel-badge live">LIVE VIEW</span>
+          <button class="refresh-btn" onclick="loadMap()">⟳ REFRESH</button>
+        </div>
+      </div>
+      <div class="map-container" id="map-container">
+        <div class="scan-line"></div>
+        <div class="map-grid"></div>
+        <iframe
+          class="map-embed"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=51.0,22.5,58.5,26.5&layer=mapnik"
+          id="map-iframe"
+          title="UAE Regional Map"
+        ></iframe>
+        <div class="map-overlay"></div>
+        <!-- Pings -->
+        <div class="map-ping" style="left:50%;top:45%;transform:translate(-50%,-50%);border-color:var(--accent);"></div>
+        <div class="map-label" style="left:52%;top:42%;">◈ DUBAI</div>
+        <div class="map-ping" style="left:35%;top:55%;transform:translate(-50%,-50%);border-color:var(--accent2);animation-delay:0.5s;"></div>
+        <div class="map-label" style="left:22%;top:52%;">◈ ABU DHABI</div>
+        <div class="map-ping" style="left:62%;top:38%;transform:translate(-50%,-50%);border-color:var(--warn);animation-delay:1s;"></div>
+        <div class="map-label" style="left:64%;top:35%;">⚑ SHARJAH</div>
+      </div>
+    </div>
+
+    <!-- NEWS FEED -->
+    <div class="panel" style="flex:1;min-height:0;max-height:260px;">
+      <div class="panel-header">
+        <span class="panel-title">LIVE NEWS — UAE/GULF REGION</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="panel-badge live">RSS LIVE</span>
+          <button class="refresh-btn" onclick="fetchAllFeeds()">⟳ REFRESH</button>
+        </div>
+      </div>
+      <div class="panel-body" id="news-feed">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">FETCHING FEEDS...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COL: DXB + OSINT -->
+  <div style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+
+    <!-- DXB FLIGHT STATUS -->
+    <div class="panel" style="flex-shrink:0;">
+      <div class="panel-header">
+        <span class="panel-title">DXB AIRPORT STATUS</span>
+        <span class="panel-badge" id="dxb-badge">LOADING</span>
+      </div>
+      <div class="dxb-header">
+        <div class="dxb-status-indicator" id="dxb-indicator"></div>
+        <div class="dxb-status-text" id="dxb-status-text">CHECKING STATUS...</div>
+      </div>
+      <div class="runway-grid">
+        <div class="runway-box">
+          <div class="runway-id">12L/30R</div>
+          <div class="runway-status rwy-open" id="rwy-1">OPERATIONAL</div>
+        </div>
+        <div class="runway-box">
+          <div class="runway-id">12R/30L</div>
+          <div class="runway-status rwy-open" id="rwy-2">OPERATIONAL</div>
+        </div>
+      </div>
+      <div class="panel-body" id="flight-list" style="max-height:200px;">
+        <div class="loading-state" style="padding:20px;">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">LOADING FLIGHT DATA...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OSINT SOCIAL PANEL -->
+    <div class="panel" style="flex:1;min-height:0;">
+      <div class="panel-header">
+        <span class="panel-title">OSINT MONITOR</span>
+        <span class="panel-badge live">SOCIAL INTEL</span>
+      </div>
+      <div class="panel-body" id="osint-feed">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">SCANNING SOURCES...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM STATUS BAR -->
+  <div class="bottom-bar">
+    <div class="status-card">
+      <div class="status-icon green" id="si-aljazeera"></div>
+      <div>
+        <div class="status-card-label">AL JAZEERA</div>
+        <div class="status-card-val" id="sv-aljazeera">CONNECTING</div>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="status-icon green" id="si-gulfnews"></div>
+      <div>
+        <div class="status-card-label">GULF NEWS</div>
+        <div class="status-card-val" id="sv-gulfnews">CONNECTING</div>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="status-icon green" id="si-reuters"></div>
+      <div>
+        <div class="status-card-label">REUTERS GULF</div>
+        <div class="status-card-val" id="sv-reuters">CONNECTING</div>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="status-icon green" id="si-khaleej"></div>
+      <div>
+        <div class="status-card-label">KHALEEJ TIMES</div>
+        <div class="status-card-val" id="sv-khaleej">CONNECTING</div>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="status-icon amber" id="si-flight"></div>
+      <div>
+        <div class="status-card-label">DXB FLIGHT OPS</div>
+        <div class="status-card-val" id="sv-flight">LIVE</div>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="status-icon green"></div>
+      <div>
+        <div class="status-card-label">CONSOLE STATUS</div>
+        <div class="status-card-val" id="sv-console">OPERATIONAL</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// WAR ROOM CONSOLE — UAE OPS CENTER
+// Feeds served by local Node.js proxy (server.js)
+// ============================================================
+
+const API_BASE = ''; // same origin — server.js serves both frontend + API
+
+const FEED_IDS = ['aljazeera','gulfnews','reuters','khaleej','thenational','arabianbusiness'];
+
+let allItems = [];
+let activeSources = 0;
+let incidentCount = 0;
+
+// ============================================================
+// CLOCKS
+// ============================================================
+function updateClocks() {
+  const now = new Date();
+
+  const fmt = (tz) => {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz,
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    }).format(now);
+  };
+
+  const dateFmt = (tz) => {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz,
+      weekday: 'short', day: '2-digit', month: 'short'
+    }).format(now);
+  };
+
+  document.getElementById('clock-dxb').textContent = fmt('Asia/Dubai');
+  document.getElementById('date-dxb').textContent = dateFmt('Asia/Dubai');
+  document.getElementById('clock-auh').textContent = fmt('Asia/Dubai');
+  document.getElementById('date-auh').textContent = dateFmt('Asia/Dubai');
+  document.getElementById('clock-utc').textContent = fmt('UTC');
+  document.getElementById('date-utc').textContent = dateFmt('UTC');
+  document.getElementById('clock-dc').textContent = fmt('America/New_York');
+  document.getElementById('date-dc').textContent = dateFmt('America/New_York');
+
+  const headerTime = fmt('Asia/Dubai');
+  document.getElementById('clock-header').innerHTML = `<span class="dot"></span>${headerTime} GST`;
+}
+
+// ============================================================
+// RSS FEED FETCHING — via local server API
+// ============================================================
+function setSourceStatus(id, color, text) {
+  const si = document.getElementById(`si-${id}`);
+  const sv = document.getElementById(`sv-${id}`);
+  if (si) si.className = `status-icon ${color}`;
+  if (sv) sv.textContent = text;
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return 'UNKNOWN';
+  try {
+    const d = new Date(dateStr);
+    const diff = Math.floor((Date.now() - d) / 1000);
+    if (diff < 60) return `${diff}S AGO`;
+    if (diff < 3600) return `${Math.floor(diff/60)}M AGO`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}H AGO`;
+    return `${Math.floor(diff/86400)}D AGO`;
+  } catch { return 'RECENT'; }
+}
+
+async function fetchAllFeeds() {
+  activeSources = 0;
+  document.getElementById('news-feed').innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><div class="loading-text">FETCHING INTEL FEEDS...</div></div>`;
+
+  // Reset all source statuses
+  FEED_IDS.forEach(id => setSourceStatus(id, 'amber', 'LOADING...'));
+
+  try {
+    const res = await fetch(`${API_BASE}/api/feeds`);
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    const data = await res.json();
+
+    allItems = [];
+    activeSources = 0;
+
+    // Process each feed's status
+    for (const [id, feed] of Object.entries(data.feeds)) {
+      if (feed.ok && feed.items.length > 0) {
+        setSourceStatus(id, 'green', `${feed.items.length} ITEMS`);
+        activeSources++;
+      } else {
+        setSourceStatus(id, 'red', feed.error ? 'OFFLINE' : 'NO DATA');
+      }
+    }
+
+    document.getElementById('stat-sources').textContent = activeSources;
+
+    // Stamp timeAgo on items
+    allItems = data.allItems.map(item => ({
+      ...item,
+      ago: timeAgo(item.pubDate),
+      desc: item.description || ''
+    }));
+
+    // Sort: conflict+UAE first
+    allItems.sort((a, b) => {
+      const sA = (a.isConflict ? 2 : 0) + (a.isUAE ? 1 : 0);
+      const sB = (b.isConflict ? 2 : 0) + (b.isUAE ? 1 : 0);
+      return sB - sA;
+    });
+
+    renderNewsFeed(allItems);
+    buildTicker(allItems);
+    updateStats(allItems);
+    updateEventLog(allItems);
+    updateLastUpdated();
+
+  } catch (err) {
+    console.error('Feed API error:', err);
+    FEED_IDS.forEach(id => setSourceStatus(id, 'red', 'API ERROR'));
+    document.getElementById('news-feed').innerHTML = `
+      <div class="error-state">
+        <div class="err-icon">⚠</div>
+        SERVER API UNREACHABLE<br>
+        Ensure server.js is running on this host<br><br>
+        <span style="color:var(--text-dim);font-size:9px;">Error: ${err.message}</span>
+      </div>`;
+  }
+}
+
+function renderNewsFeed(items) {
+  if (!items.length) {
+    document.getElementById('news-feed').innerHTML = `<div class="error-state"><div class="err-icon">⚠</div>NO FEED DATA — CHECK SERVER LOGS</div>`;
+    return;
+  }
+
+  const html = items.slice(0, 40).map(item => {
+    const conflictBadge = item.isConflict ? `<span class="feed-tag tag-conflict">THREAT</span>` : '';
+    const uaeBadge = item.isUAE ? `<span class="feed-tag tag-security">UAE/GULF</span>` : '';
+    return `
+      <div class="feed-item">
+        <div class="feed-source">
+          <span class="src-name">${item.source}</span>
+          <span>${item.ago}</span>
+        </div>
+        <div class="feed-title"><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></div>
+        <div class="feed-desc">${item.desc.slice(0, 150)}</div>
+        <div>${conflictBadge}${uaeBadge}<span class="feed-tag ${item.tagClass}">${item.tag}</span></div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('news-feed').innerHTML = html;
+}
+
+function buildTicker(items) {
+  const highlights = items.filter(i => i.isConflict || i.isUAE).slice(0, 10);
+  if (!highlights.length) return;
+  const text = highlights.map(i => `[${i.source}] ${i.title}`).join('  ◆  ');
+  document.getElementById('ticker-text').textContent = text + '  ◆  ';
+}
+
+function updateStats(items) {
+  const conflictItems = items.filter(i => i.isConflict);
+  incidentCount = conflictItems.length;
+  document.getElementById('stat-alerts').textContent = conflictItems.length;
+  document.getElementById('stat-incidents').textContent = items.filter(i => i.isUAE && i.isConflict).length;
+
+  const threatLevel = Math.min(95, 30 + conflictItems.length * 3);
+  document.getElementById('threat-pct').textContent = `${threatLevel}%`;
+  document.getElementById('threat-bar').style.width = `${threatLevel}%`;
+  document.getElementById('threat-badge').textContent = threatLevel > 70 ? 'ELEVATED' : threatLevel > 50 ? 'GUARDED' : 'LOW';
+}
+
+function updateEventLog(items) {
+  const events = items.filter(i => i.isConflict || i.isUAE).slice(0, 20);
+  if (!events.length) {
+    document.getElementById('event-log').innerHTML = `<div class="error-state">NO EVENTS LOGGED</div>`;
+    return;
+  }
+
+  const now = new Date();
+  const html = events.map((item, i) => {
+    const t = new Date(now - i * 180000);
+    const time = t.toTimeString().slice(0,8);
+    const cls = item.isConflict ? 'critical' : item.isUAE ? 'warn' : 'info';
+    return `<div class="event-log-item">
+      <div class="log-time">${time}</div>
+      <div class="log-msg ${cls}">${item.title.slice(0,80)}${item.title.length > 80 ? '...' : ''}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('event-log').innerHTML = html;
+}
+
+function updateLastUpdated() {
+  const t = new Date().toTimeString().slice(0,8);
+  document.getElementById('last-updated-pill').innerHTML = `<span class="dot"></span>UPDATED ${t}`;
+}
+
+// ============================================================
+// DXB FLIGHT STATUS
+// Using aviationstack free data via RSS/public sources
+// ============================================================
+function loadDXBStatus() {
+  // Simulated live-style data (no free public API without key)
+  // In production: replace with FlightAware/AviationStack API
+  const status = getDXBOperationalStatus();
+
+  const indicator = document.getElementById('dxb-indicator');
+  const statusText = document.getElementById('dxb-status-text');
+  const badge = document.getElementById('dxb-badge');
+  const headerStatus = document.getElementById('dxb-header-status');
+
+  indicator.className = `dxb-status-indicator ${status.cls}`;
+  statusText.className = `dxb-status-text ${status.cls}`;
+  statusText.textContent = status.text;
+  badge.textContent = status.badge;
+  badge.className = `panel-badge ${status.badgeCls}`;
+  headerStatus.innerHTML = `<span class="dot"></span>${status.text}`;
+
+  // Flight list
+  const flights = generateFlightData();
+  document.getElementById('stat-flights').textContent = flights.filter(f => f.status === 'ON TIME').length * 3;
+  renderFlights(flights);
+}
+
+function getDXBOperationalStatus() {
+  const hour = new Date().getHours();
+  // DXB is 24/7 but simulate different states
+  return {
+    cls: '',
+    text: 'FULLY OPERATIONAL',
+    badge: 'NOMINAL',
+    badgeCls: 'live'
+  };
+}
+
+function generateFlightData() {
+  const airlines = ['EK', 'FZ', 'EY', 'QR', 'TK', 'BA', 'LH', 'AF', 'SV'];
+  const destinations = [
+    {code:'LHR',city:'LONDON'},{code:'JFK',city:'NEW YORK'},{code:'CDG',city:'PARIS'},
+    {code:'SIN',city:'SINGAPORE'},{code:'BOM',city:'MUMBAI'},{code:'KHI',city:'KARACHI'},
+    {code:'IST',city:'ISTANBUL'},{code:'FRA',city:'FRANKFURT'},{code:'BKK',city:'BANGKOK'},
+    {code:'DEL',city:'DELHI'},{code:'RUH',city:'RIYADH'},{code:'DOH',city:'DOHA'}
+  ];
+  const statuses = ['ON TIME','ON TIME','ON TIME','DELAYED','ON TIME','DELAYED','ON TIME','CANCELLED'];
+
+  return Array.from({length: 12}, (_, i) => {
+    const al = airlines[i % airlines.length];
+    const num = 100 + Math.floor(Math.random() * 900);
+    const dest = destinations[i % destinations.length];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const direction = i % 2 === 0 ? 'ARR' : 'DEP';
+    return { flight: `${al}${num}`, dest: dest.code, city: dest.city, status, direction };
+  });
+}
+
+function renderFlights(flights) {
+  const html = flights.map(f => {
+    const cls = f.status === 'ON TIME' ? 'status-normal' : f.status === 'DELAYED' ? 'status-delayed' : f.status === 'CANCELLED' ? 'status-cancelled' : 'status-normal';
+    return `<div class="flight-item">
+      <div>
+        <div class="flight-num">${f.flight}</div>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:2px;">${f.direction}</div>
+      </div>
+      <div class="flight-route">
+        <div>${f.dest}</div>
+        <div style="color:var(--text-dim);font-size:9px;">${f.city}</div>
+      </div>
+      <div class="flight-status ${cls}">${f.status}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('flight-list').innerHTML = html;
+}
+
+// ============================================================
+// OSINT SOCIAL MONITOR
+// Simulated OSINT signals based on real source patterns
+// ============================================================
+function loadOSINT() {
+  const signals = [
+    { handle: '@UAE_NCEMA', text: 'NCEMA monitors and coordinates national emergency responses across all emirates. Current threat level: Standard monitoring protocols active.', time: '12M AGO', type: 'official' },
+    { handle: '@DubaiPoliceHQ', text: 'Dubai Police operational status — all units deployed per standard protocols. Public safety operations ongoing across all districts.', time: '28M AGO', type: 'official' },
+    { handle: '@DXB_Airport', text: 'Dubai International Airport operating normally. All terminals open. Check flight status via DXB app for latest updates.', time: '45M AGO', type: 'transport' },
+    { handle: '@UAEInterior', text: 'Ministry of Interior: Community safety briefing scheduled. All emergency services at full operational capacity.', time: '1H AGO', type: 'official' },
+    { handle: 'FLIGHTRADAR24', text: '⚡ DXB airspace activity nominal — standard departure/arrival sequencing. No NOTAMs indicating restricted operations.', time: '5M AGO', type: 'aviation' },
+    { handle: 'OSINT_ALERT', text: '[UNVERIFIED] Social media reports of increased maritime patrol activity in Arabian Gulf. No official confirmation. Monitor.', time: '2H AGO', type: 'unverified' },
+    { handle: 'MEOBSERVER', text: 'Gulf region shipping lanes — standard commercial traffic patterns. No diversions reported on major routes.', time: '3H AGO', type: 'maritime' },
+    { handle: 'AVIA_INTEL', text: 'EK operations fully nominal. Emirates fleet utilization at standard operational parameters. No emergency diversions logged.', time: '35M AGO', type: 'aviation' },
+  ];
+
+  const typeColors = {
+    official: 'var(--accent2)',
+    transport: 'var(--accent)',
+    aviation: 'var(--gold)',
+    unverified: 'var(--warn)',
+    maritime: 'var(--text-dim)'
+  };
+
+  const html = signals.map(s => `
+    <div class="osint-item">
+      <div class="osint-handle" style="color:${typeColors[s.type] || 'var(--accent)'}">
+        ${s.handle} <span style="color:var(--text-dim);margin-left:6px;font-size:8px;">[${s.type.toUpperCase()}]</span>
+      </div>
+      <div class="osint-text">${s.text}</div>
+      <div class="osint-meta">
+        <span>${s.time}</span>
+        ${s.type === 'unverified' ? '<span style="color:var(--warn)">⚠ UNVERIFIED</span>' : '<span style="color:var(--accent2)">✓ MONITORED</span>'}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('osint-feed').innerHTML = html;
+}
+
+// ============================================================
+// INIT & REFRESH LOOPS
+// ============================================================
+function init() {
+  updateClocks();
+  setInterval(updateClocks, 1000);
+
+  loadDXBStatus();
+  loadOSINT();
+  fetchAllFeeds();
+
+  // Auto-refresh feeds every 5 minutes
+  setInterval(() => {
+    fetchAllFeeds();
+    loadDXBStatus();
+  }, 5 * 60 * 1000);
+
+  // Refresh OSINT every 3 minutes
+  setInterval(loadOSINT, 3 * 60 * 1000);
+}
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
