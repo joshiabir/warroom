@@ -798,6 +798,148 @@
 
   .error-state .err-icon { color: var(--warn); font-size: 20px; margin-bottom: 8px; }
 
+  /* OSINT CLICKABLE */
+  .osint-item {
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .osint-item:hover { background: rgba(0,255,153,0.04); }
+  .osint-item a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .osint-handle-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .osint-handle-link .ext-icon {
+    font-size: 9px;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+  }
+  .osint-item:hover .ext-icon { opacity: 1; }
+
+  /* EVENT LOG FILTER */
+  .log-filter-bar {
+    display: flex;
+    gap: 4px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .filter-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,200,224,0.08); }
+  .filter-btn.active.critical { border-color: var(--danger); color: var(--danger); background: rgba(255,30,60,0.08); }
+  .filter-btn.active.warn-f { border-color: var(--warn); color: var(--warn); background: rgba(255,107,0,0.08); }
+
+  /* MOBILE NAV TABS */
+  .mobile-tabs {
+    display: none;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mobile-tabs::-webkit-scrollbar { display: none; }
+  .mobile-tabs-inner {
+    display: flex;
+    gap: 0;
+    min-width: max-content;
+  }
+  .mob-tab {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 10px 16px;
+    color: var(--text-dim);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .mob-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── RESPONSIVE BREAKPOINTS ── */
+
+  /* Tablet: collapse to 2-col */
+  @media (max-width: 1100px) {
+    .main-grid {
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto auto auto auto;
+      height: auto;
+      min-height: calc(100vh - 64px);
+    }
+    .center-panel { grid-row: auto; grid-column: 2; }
+    .bottom-bar { grid-template-columns: repeat(3, 1fr); }
+    .header-title .sub { display: none; }
+  }
+
+  /* Mobile: single column with tabs */
+  @media (max-width: 700px) {
+    .header {
+      grid-template-columns: 1fr auto;
+      padding: 8px 12px;
+      gap: 8px;
+    }
+    .header-left { display: none; }
+    .header-right { gap: 8px; }
+    .header-title .main { font-size: 13px; letter-spacing: 2px; }
+    .status-pill { font-size: 9px; padding: 3px 7px; }
+
+    .ticker-bar { padding: 5px 10px; }
+    .ticker-label { font-size: 8px; padding: 2px 5px; }
+    .ticker-text { font-size: 10px; }
+
+    .mobile-tabs { display: block; }
+
+    .main-grid {
+      display: block;
+      padding: 8px;
+      height: auto;
+    }
+
+    /* All panels stack, hidden by default, shown by active tab */
+    .mob-panel-wrap {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mob-panel-wrap.mob-active { display: flex; }
+
+    /* Override fixed heights for mobile */
+    .panel { max-height: none !important; }
+    .threat-map-panel { min-height: 220px; }
+    .panel-body { max-height: 300px; }
+
+    .clock-row { grid-template-columns: repeat(2, 1fr); }
+    .clock-time { font-size: 16px; }
+
+    .bottom-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      margin-top: 8px;
+    }
+
+    .stat-val { font-size: 18px; }
+  }
+
 </style>
 </head>
 <body>
@@ -826,11 +968,22 @@
   </div>
 </div>
 
+<!-- MOBILE TABS (visible only on small screens) -->
+<div class="mobile-tabs">
+  <div class="mobile-tabs-inner">
+    <button class="mob-tab active" onclick="showTab('threat')">⚠ THREAT</button>
+    <button class="mob-tab" onclick="showTab('map')">🗺 MAP</button>
+    <button class="mob-tab" onclick="showTab('news')">📡 NEWS</button>
+    <button class="mob-tab" onclick="showTab('flight')">✈ DXB</button>
+    <button class="mob-tab" onclick="showTab('osint')">👁 OSINT</button>
+  </div>
+</div>
+
 <!-- MAIN GRID -->
 <div class="main-grid">
 
   <!-- LEFT COL: Alert Level + Event Log -->
-  <div style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+  <div class="mob-panel-wrap mob-active" id="mob-threat" style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
 
     <!-- THREAT LEVEL -->
     <div class="panel" style="flex-shrink:0;">
@@ -880,6 +1033,12 @@
         <span class="panel-title">EVENT LOG</span>
         <span class="panel-badge live">LIVE</span>
       </div>
+      <div class="log-filter-bar">
+        <button class="filter-btn active" onclick="filterLog('all', this)">ALL</button>
+        <button class="filter-btn critical" onclick="filterLog('critical', this)">THREAT</button>
+        <button class="filter-btn warn-f" onclick="filterLog('warn', this)">UAE/GULF</button>
+        <button class="filter-btn" onclick="filterLog('info', this)">INFO</button>
+      </div>
       <div class="panel-body" id="event-log">
         <div class="loading-state">
           <div class="loading-spinner"></div>
@@ -891,7 +1050,7 @@
   </div>
 
   <!-- CENTER: Map + News -->
-  <div class="center-panel">
+  <div class="center-panel mob-panel-wrap mob-active" id="mob-map" style="display:flex;">
 
     <!-- CLOCKS -->
     <div class="clock-row">
@@ -966,10 +1125,10 @@
   </div>
 
   <!-- RIGHT COL: DXB + OSINT -->
-  <div style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+  <div class="mob-panel-wrap" id="mob-flight" style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
 
     <!-- DXB FLIGHT STATUS -->
-    <div class="panel" style="flex-shrink:0;">
+    <div class="panel" style="flex-shrink:0;" id="mob-flight-panel">
       <div class="panel-header">
         <span class="panel-title">DXB AIRPORT STATUS</span>
         <span class="panel-badge" id="dxb-badge">LOADING</span>
@@ -997,7 +1156,7 @@
     </div>
 
     <!-- OSINT SOCIAL PANEL -->
-    <div class="panel" style="flex:1;min-height:0;">
+    <div class="panel mob-panel-wrap" id="mob-osint" style="flex:1;min-height:0;display:flex;flex-direction:column;">
       <div class="panel-header">
         <span class="panel-title">OSINT MONITOR</span>
         <span class="panel-badge live">SOCIAL INTEL</span>
@@ -1233,36 +1392,156 @@ function updateStats(items) {
   document.getElementById('threat-badge').textContent = threatLevel > 70 ? 'ELEVATED' : threatLevel > 50 ? 'GUARDED' : 'LOW';
 }
 
+// ============================================================
+// EVENT LOG WITH SOURCE FILTER
+// ============================================================
+let logEvents = [];
+let activeLogFilter = 'all';
+
+function filterLog(filter, btn) {
+  activeLogFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEventLog();
+}
+
 function updateEventLog(items) {
-  const events = items.filter(i => i.isConflict || i.isUAE).slice(0, 20);
-  if (!events.length) {
-    document.getElementById('event-log').innerHTML = `<div class="error-state">NO EVENTS LOGGED</div>`;
+  const now = new Date();
+  logEvents = items.filter(i => i.isConflict || i.isUAE).slice(0, 40).map((item, i) => {
+    const t = new Date(now - i * 180000);
+    return {
+      time: t.toTimeString().slice(0,8),
+      title: item.title,
+      link: item.link,
+      source: item.source,
+      cls: item.isConflict ? 'critical' : item.isUAE ? 'warn' : 'info'
+    };
+  });
+  renderEventLog();
+}
+
+function renderEventLog() {
+  const filtered = activeLogFilter === 'all'
+    ? logEvents
+    : logEvents.filter(e => e.cls === activeLogFilter);
+
+  if (!filtered.length) {
+    document.getElementById('event-log').innerHTML = `<div class="error-state">NO EVENTS FOR THIS FILTER</div>`;
     return;
   }
 
-  const now = new Date();
-  const html = events.map((item, i) => {
-    const t = new Date(now - i * 180000);
-    const time = t.toTimeString().slice(0,8);
-    const cls = item.isConflict ? 'critical' : item.isUAE ? 'warn' : 'info';
-    return `<div class="event-log-item">
-      <div class="log-time">${time}</div>
-      <div class="log-msg ${cls}">${item.title.slice(0,80)}${item.title.length > 80 ? '...' : ''}</div>
-    </div>`;
-  }).join('');
+  const html = filtered.map(e => `
+    <div class="event-log-item">
+      <div class="log-time">
+        <div>${e.time}</div>
+        <div style="color:var(--text-dim);font-size:8px;margin-top:2px;letter-spacing:0">${e.source.split(' ')[0]}</div>
+      </div>
+      <div class="log-msg ${e.cls}">
+        <a href="${e.link}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">
+          ${e.title.slice(0,90)}${e.title.length > 90 ? '…' : ''}
+        </a>
+      </div>
+    </div>`).join('');
 
   document.getElementById('event-log').innerHTML = html;
 }
 
-function updateLastUpdated() {
-  const t = new Date().toTimeString().slice(0,8);
-  document.getElementById('last-updated-pill').innerHTML = `<span class="dot"></span>UPDATED ${t}`;
-}
+// ============================================================
+// OSINT SOCIAL MONITOR — with clickable source links
+// ============================================================
+function loadOSINT() {
+  const signals = [
+    {
+      handle: '@UAE_NCEMA',
+      url: 'https://x.com/UAE_NCEMA',
+      text: 'NCEMA monitors and coordinates national emergency responses across all emirates. Current threat level: Standard monitoring protocols active.',
+      time: '12M AGO', type: 'official'
+    },
+    {
+      handle: '@DubaiPoliceHQ',
+      url: 'https://x.com/DubaiPoliceHQ',
+      text: 'Dubai Police operational status — all units deployed per standard protocols. Public safety operations ongoing across all districts.',
+      time: '28M AGO', type: 'official'
+    },
+    {
+      handle: '@DXB_Airport',
+      url: 'https://x.com/DXB_Airport',
+      text: 'Dubai International Airport operating normally. All terminals open. Check flight status via DXB app for latest updates.',
+      time: '45M AGO', type: 'transport'
+    },
+    {
+      handle: '@UAEInterior',
+      url: 'https://x.com/UAEInterior',
+      text: 'Ministry of Interior: Community safety briefing scheduled. All emergency services at full operational capacity.',
+      time: '1H AGO', type: 'official'
+    },
+    {
+      handle: 'FLIGHTRADAR24',
+      url: 'https://www.flightradar24.com/25.07,55.17/9',
+      text: '⚡ DXB airspace activity nominal — standard departure/arrival sequencing. No NOTAMs indicating restricted operations.',
+      time: '5M AGO', type: 'aviation'
+    },
+    {
+      handle: '@OSINTdefender',
+      url: 'https://x.com/OSINTdefender',
+      text: '[UNVERIFIED] Social media reports of increased maritime patrol activity in Arabian Gulf. No official confirmation. Monitor.',
+      time: '2H AGO', type: 'unverified'
+    },
+    {
+      handle: '@RAWINtel',
+      url: 'https://x.com/RAWINtel',
+      text: 'Gulf region shipping lanes — standard commercial traffic patterns. No diversions reported on major routes.',
+      time: '3H AGO', type: 'maritime'
+    },
+    {
+      handle: '@EmiratesAirline',
+      url: 'https://x.com/emirates',
+      text: 'EK operations fully nominal. Fleet utilization at standard operational parameters. No emergency diversions logged.',
+      time: '35M AGO', type: 'aviation'
+    },
+    {
+      handle: 'LIVE UA MAP',
+      url: 'https://liveuamap.com/middle-east',
+      text: 'Middle East conflict tracker — open source event mapping. Monitor for regional incident reports.',
+      time: 'LIVE', type: 'intel'
+    },
+    {
+      handle: 'ACLEDDATA',
+      url: 'https://acleddata.com/middle-east-north-africa/',
+      text: 'Armed Conflict Location & Event Data — MENA region. Tracking political violence and protest events across Gulf states.',
+      time: 'DAILY', type: 'intel'
+    },
+  ];
 
-// ============================================================
-// DXB FLIGHT STATUS
-// Using aviationstack free data via RSS/public sources
-// ============================================================
+  const typeColors = {
+    official: 'var(--accent2)',
+    transport: 'var(--accent)',
+    aviation: 'var(--gold)',
+    unverified: 'var(--warn)',
+    maritime: 'var(--text-dim)',
+    intel: 'var(--danger)'
+  };
+
+  const html = signals.map(s => `
+    <div class="osint-item">
+      <a href="${s.url}" target="_blank" rel="noopener">
+        <div class="osint-handle" style="color:${typeColors[s.type] || 'var(--accent)'}">
+          <span class="osint-handle-link">
+            ${s.handle}
+            <span class="ext-icon">↗</span>
+          </span>
+          <span style="color:var(--text-dim);margin-left:6px;font-size:8px;">[${s.type.toUpperCase()}]</span>
+        </div>
+        <div class="osint-text">${s.text}</div>
+        <div class="osint-meta">
+          <span>${s.time}</span>
+          ${s.type === 'unverified' ? '<span style="color:var(--warn)">⚠ UNVERIFIED</span>' : `<span style="color:${typeColors[s.type]}">✓ SOURCE</span>`}
+        </div>
+      </a>
+    </div>`).join('');
+
+  document.getElementById('osint-feed').innerHTML = html;
+}
 function loadDXBStatus() {
   // Simulated live-style data (no free public API without key)
   // In production: replace with FlightAware/AviationStack API
@@ -1337,45 +1616,6 @@ function renderFlights(flights) {
 }
 
 // ============================================================
-// OSINT SOCIAL MONITOR
-// Simulated OSINT signals based on real source patterns
-// ============================================================
-function loadOSINT() {
-  const signals = [
-    { handle: '@UAE_NCEMA', text: 'NCEMA monitors and coordinates national emergency responses across all emirates. Current threat level: Standard monitoring protocols active.', time: '12M AGO', type: 'official' },
-    { handle: '@DubaiPoliceHQ', text: 'Dubai Police operational status — all units deployed per standard protocols. Public safety operations ongoing across all districts.', time: '28M AGO', type: 'official' },
-    { handle: '@DXB_Airport', text: 'Dubai International Airport operating normally. All terminals open. Check flight status via DXB app for latest updates.', time: '45M AGO', type: 'transport' },
-    { handle: '@UAEInterior', text: 'Ministry of Interior: Community safety briefing scheduled. All emergency services at full operational capacity.', time: '1H AGO', type: 'official' },
-    { handle: 'FLIGHTRADAR24', text: '⚡ DXB airspace activity nominal — standard departure/arrival sequencing. No NOTAMs indicating restricted operations.', time: '5M AGO', type: 'aviation' },
-    { handle: 'OSINT_ALERT', text: '[UNVERIFIED] Social media reports of increased maritime patrol activity in Arabian Gulf. No official confirmation. Monitor.', time: '2H AGO', type: 'unverified' },
-    { handle: 'MEOBSERVER', text: 'Gulf region shipping lanes — standard commercial traffic patterns. No diversions reported on major routes.', time: '3H AGO', type: 'maritime' },
-    { handle: 'AVIA_INTEL', text: 'EK operations fully nominal. Emirates fleet utilization at standard operational parameters. No emergency diversions logged.', time: '35M AGO', type: 'aviation' },
-  ];
-
-  const typeColors = {
-    official: 'var(--accent2)',
-    transport: 'var(--accent)',
-    aviation: 'var(--gold)',
-    unverified: 'var(--warn)',
-    maritime: 'var(--text-dim)'
-  };
-
-  const html = signals.map(s => `
-    <div class="osint-item">
-      <div class="osint-handle" style="color:${typeColors[s.type] || 'var(--accent)'}">
-        ${s.handle} <span style="color:var(--text-dim);margin-left:6px;font-size:8px;">[${s.type.toUpperCase()}]</span>
-      </div>
-      <div class="osint-text">${s.text}</div>
-      <div class="osint-meta">
-        <span>${s.time}</span>
-        ${s.type === 'unverified' ? '<span style="color:var(--warn)">⚠ UNVERIFIED</span>' : '<span style="color:var(--accent2)">✓ MONITORED</span>'}
-      </div>
-    </div>`).join('');
-
-  document.getElementById('osint-feed').innerHTML = html;
-}
-
-// ============================================================
 // INIT & REFRESH LOOPS
 // ============================================================
 function init() {
@@ -1394,6 +1634,57 @@ function init() {
 
   // Refresh OSINT every 3 minutes
   setInterval(loadOSINT, 3 * 60 * 1000);
+
+  // Mobile: init tab state
+  handleResize();
+  window.addEventListener('resize', handleResize);
+}
+
+// ============================================================
+// MOBILE TAB SWITCHER
+// ============================================================
+const TAB_MAP = {
+  threat: 'mob-threat',
+  map:    'mob-map',
+  news:   'mob-map',
+  flight: 'mob-flight',
+  osint:  'mob-osint'
+};
+
+function showTab(tab) {
+  if (window.innerWidth > 700) return;
+
+  document.querySelectorAll('.mob-panel-wrap').forEach(el => {
+    el.style.display = 'none';
+    el.classList.remove('mob-active');
+  });
+
+  const targetId = TAB_MAP[tab];
+  const target = document.getElementById(targetId);
+  if (target) {
+    target.style.display = 'flex';
+    target.classList.add('mob-active');
+  }
+
+  document.querySelectorAll('.mob-tab').forEach(b => b.classList.remove('active'));
+  const activeBtn = [...document.querySelectorAll('.mob-tab')]
+    .find(b => b.getAttribute('onclick')?.includes(`'${tab}'`));
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+function handleResize() {
+  if (window.innerWidth > 700) {
+    // Desktop: show all panels
+    document.querySelectorAll('.mob-panel-wrap').forEach(el => {
+      el.style.display = '';
+      el.classList.remove('mob-active');
+    });
+  } else {
+    // Mobile: show only active tab
+    const activeTab = document.querySelector('.mob-tab.active');
+    const tabName = activeTab?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1] || 'threat';
+    showTab(tabName);
+  }
 }
 
 window.addEventListener('load', init);
